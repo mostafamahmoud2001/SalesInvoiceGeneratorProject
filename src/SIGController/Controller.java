@@ -1,68 +1,46 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package SIGController;
 
-import SIGModel.FileOperation;
-import SIGModel.HeaderTable;
-import SIGModel.InvoiceHeader;
-import SIGModel.InvoiceLine;
-import SIGModel.LineTable;
-import SIGView.HeaderFrame;
-import SIGView.LineFrame;
-import SIGView.MainFrame;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
+import Model.*;
+import SIGView.*;
+
+import java.awt.event.*;
+import java.util.*;
+import javax.swing.*;
+import java.io.*;
+import java.text.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 
-/**
- *
- * @author DELL
- */
 public class Controller implements ActionListener {
 
-    private final MainFrame mainFrame;
-    private final SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-    private ArrayList<InvoiceHeader> headers;
-    private ArrayList<InvoiceLine> invoiceItems;
-
-    private HeaderFrame hFrame;
-    private LineFrame lFrame;
-    private FileOperation fileOperation;
+    private ArrayList<HeaderInvoice> hLine;
+    private HeaderFrame invoiceF;
+    private LineFrame lineF;
+    private FileOP fileOp;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+    private ArrayList<invoiceSampla> invLines;
+    private final MainFrame main;
 
     public Controller(MainFrame mainFrame) {
-        this.mainFrame = mainFrame;
+        this.main = mainFrame;
     }
 
     public void invoiceDateLblKeyPressed(java.awt.event.KeyEvent evt) {
-        int Row = mainFrame.getInvoiceTable().getSelectedRow();
+        int Row = main.getInvoiceTable().getSelectedRow();
         if (evt.getKeyCode() == 10 && Row != -1) {
             javax.swing.JTextField x = (javax.swing.JTextField) evt.getComponent();
             try {
-                Date parse = formatter.parse(x.getText());
+                Date parse = dateFormat.parse(x.getText());
             } catch (ParseException ex) {
                 JOptionPane.showMessageDialog(null, "Date Not In Formate dd-MM-yyyy", "Date Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            InvoiceHeader invoiceHeader = mainFrame.getHeadersArray().get(Row);
+            HeaderInvoice invoiceHeader = main.getHeadersArray().get(Row);
             if (invoiceHeader.getInvoiceDate() != x.getText()) {
                 invoiceHeader.setInvoiceDate(x.getText());
-                HeaderTable hTable = new HeaderTable();
-                hTable.setHeaders(mainFrame.getHeadersArray());
-                mainFrame.getInvoiceTable().setModel(hTable);
+                TableHeader hTable = new TableHeader();
+                hTable.setHeaders(main.getHeadersArray());
+                main.getInvoiceTable().setModel(hTable);
 
             }
         }
@@ -70,49 +48,48 @@ public class Controller implements ActionListener {
     }
 
     public void invoiceCustomerNameLblKeyPressed(java.awt.event.KeyEvent evt) {
-        int Row = mainFrame.getInvoiceTable().getSelectedRow();
+        int Row = main.getInvoiceTable().getSelectedRow();
         if (evt.getKeyCode() == 10 && Row != -1) {
             javax.swing.JTextField x = (javax.swing.JTextField) evt.getComponent();
-            InvoiceHeader invoiceHeader = mainFrame.getHeadersArray().get(Row);
+            HeaderInvoice invoiceHeader = main.getHeadersArray().get(Row);
             if (invoiceHeader.getCustomerName() != x.getText()) {
                 invoiceHeader.setCustomerName(x.getText());
-                HeaderTable hTable = new HeaderTable();
-                hTable.setHeaders(mainFrame.getHeadersArray());
-                mainFrame.getInvoiceTable().setModel(hTable);
+                TableHeader hTable = new TableHeader();
+                hTable.setHeaders(main.getHeadersArray());
+                main.getInvoiceTable().setModel(hTable);
             }
         }
     }
 
 //
     public void intiTables() throws IOException {
-        fileOperation = new FileOperation(mainFrame);
-        headers = new ArrayList<>();
-        invoiceItems = new ArrayList<>();
-
-        final File headerFile = new File("InvoiceHeader.csv");
+        fileOp = new FileOP(main);
+        hLine = new ArrayList<>();
+        invLines = new ArrayList<>();
         final File lineFile = new File("InvoiceLine.csv");
+        final File headerFile = new File("InvoiceHeader.csv");
         System.out.println(headerFile.canRead());
         if (!headerFile.canRead() || !lineFile.canRead()) {
             JOptionPane.showMessageDialog(null, "File Not Found ", "Date Error", JOptionPane.ERROR_MESSAGE);
             throw new FileNotFoundException();
 
         }
-        ArrayList<String> headerLines = fileOperation.readFile(headerFile);
-        ArrayList<String> itemLines = fileOperation.readFile(lineFile);
-        //generate (invoice number,invoice date, cusomer name) from each HeaderLine
+        ArrayList<String> itemLines = fileOp.readFile(lineFile);
 
+        ArrayList<String> headerLines = fileOp.readFile(headerFile);
         for (String line : headerLines) {
-            String[] items = line.split(",");
             Date date = new Date();
+
+            String[] items = line.split(",");
             int invoiceNumber = Integer.parseInt(items[0]);
             try {
-                date = formatter.parse(items[1]);
+                date = dateFormat.parse(items[1]);
             } catch (ParseException parserx) {
                 JOptionPane.showMessageDialog(null, "Date must be in format dd-MM-yyyy", "Date Error", JOptionPane.ERROR_MESSAGE);
             }
             String customerName = items[2];
-            InvoiceHeader invoiceHeader = new InvoiceHeader(invoiceNumber, date, customerName);
-            headers.add(invoiceHeader);
+            HeaderInvoice invoiceHeader = new HeaderInvoice(invoiceNumber, date, customerName);
+            hLine.add(invoiceHeader);
         }
         for (String line : itemLines) {
             String[] items = line.split(",");
@@ -126,32 +103,32 @@ public class Controller implements ActionListener {
                 return;
             }
 
-            InvoiceLine invoiceLine = null;
-            for (InvoiceHeader header : headers) {
+            invoiceSampla invoiceLine = null;
+            for (HeaderInvoice header : hLine) {
                 if (invoiceNumber == header.getInvoiceNumber()) {
-                    invoiceLine = new InvoiceLine(invoiceNumber, customerName, price, count, header);
-                    header.setInvoiceTotal(invoiceLine.getLineTotal());
+                    invoiceLine = new invoiceSampla(invoiceNumber, customerName, price, count, header);
+                    header.setInvoiceTotal(invoiceLine.getLineTot());
                     break;
                 }
             }
 
-            invoiceItems.add(invoiceLine);
+            invLines.add(invoiceLine);
         }
-        for (InvoiceHeader header : headers) {
-            ArrayList<InvoiceLine> tmp = new ArrayList<>();
-            for (InvoiceLine invoiceline : invoiceItems) {
-                if (header.getInvoiceNumber() == invoiceline.getInvoiceNumber()) {
+        for (HeaderInvoice header : hLine) {
+            ArrayList<invoiceSampla> tmp = new ArrayList<>();
+            for (invoiceSampla invoiceline : invLines) {
+                if (header.getInvoiceNumber() == invoiceline.getInvNumber()) {
                     tmp.add(invoiceline);
                 }
             }
             header.setLines(tmp);
         }
 
-        mainFrame.setHeadersArray(headers);
-        mainFrame.setLinesArray(invoiceItems);
-        HeaderTable hTable = new HeaderTable();
-        hTable.setHeaders(mainFrame.getHeadersArray());
-        mainFrame.getInvoiceTable().setModel(hTable);
+        main.setHeadersArray(hLine);
+        main.setLinesArray(invLines);
+        TableHeader hTable = new TableHeader();
+        hTable.setHeaders(main.getHeadersArray());
+        main.getInvoiceTable().setModel(hTable);
     }
 
     @Override
@@ -177,10 +154,8 @@ public class Controller implements ActionListener {
                     loadFile();
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(null, "Wrong Data Format ", "Date Error", JOptionPane.ERROR_MESSAGE);
-                    return;
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, "Wrong File Format ", "Date Error", JOptionPane.ERROR_MESSAGE);
-                    return;
                 }
 
             }
@@ -213,7 +188,7 @@ public class Controller implements ActionListener {
         //to find the min Invoice id 
         int num = 1;
         int totalIDs = 0;
-        for (InvoiceHeader h : headers) {
+        for (HeaderInvoice h : hLine) {
             num = Math.max(num, h.getInvoiceNumber());
             totalIDs += h.getInvoiceNumber();
         }
@@ -223,80 +198,63 @@ public class Controller implements ActionListener {
         } else {
             num++;
         }
-        hFrame = new HeaderFrame(mainFrame);
-        hFrame.setInvoiceNumber(Integer.toString(num));
-
+        invoiceF = new HeaderFrame(main);
+        invoiceF.setInvoiceNumber(Integer.toString(num));
     }
-
     private void createLine() {
-        //   int selectedRow = MainFrame.invoiceTable.getSelectedRow();
-        int selectedRow = mainFrame.getInvoiceTable().getSelectedRow();
-        if (selectedRow == -1) {
+        int selRow = main.getInvoiceTable().getSelectedRow();
+        if (selRow == -1) {
             JOptionPane.showMessageDialog(null, "Please select Invoice Header to add items on it ", "Insertion Failure", JOptionPane.ERROR_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(null, "Enter Line  details ", " ", JOptionPane.INFORMATION_MESSAGE);
-            lFrame = new LineFrame(mainFrame);
-
+            lineF = new LineFrame(main);
         }
     }
-
     private void deleteInvoice() {
-        // int selectedRow = MainFrame.invoiceTable.getSelectedRow();
-        int selectedRow = mainFrame.getInvoiceTable().getSelectedRow();
-        if (selectedRow == -1) {
+        int selRow = main.getInvoiceTable().getSelectedRow();
+        if (selRow == -1) {
             JOptionPane.showMessageDialog(null, "Please select Invoice Header to delete it ", "delete erorr", JOptionPane.ERROR_MESSAGE);
         } else {
-            ArrayList<InvoiceLine> emptyLines = new ArrayList<>();
-            mainFrame.getHeadersArray().get(selectedRow).setLines(emptyLines);
-
-            LineTable lTable = new LineTable();
-            lTable.setItems(mainFrame.getHeadersArray().get(selectedRow).getLines());
-            //MainFrame.invoiceItems.setModel(lTable);
-            mainFrame.getInvoiceItemsTable().setModel(lTable);
-            mainFrame.setCustomerNameLblText(",");
-            mainFrame.setInvoiceDateLblText(",");
-            mainFrame.setInvoiceNumLblText(",");
-            mainFrame.setInvoiceTotalLblText("0");
-
-            mainFrame.getHeadersArray().remove(selectedRow);
-            HeaderTable hTable = new HeaderTable();
-            hTable.setHeaders(mainFrame.getHeadersArray());
-            //        MainFrame.invoiceTable.setModel(hTable);
-            mainFrame.getInvoiceTable().setModel(hTable);
-
+            ArrayList<invoiceSampla> emptyLines = new ArrayList<>();
+            main.getHeadersArray().get(selRow).setLines(emptyLines);
+            TableSamble lTable = new TableSamble();
+            lTable.setItems(main.getHeadersArray().get(selRow).getLines());
+            main.getInvoiceItemsTable().setModel(lTable);
+            main.setCustomerNameLblText(",");
+            main.setInvoiceDateLblText(",");
+            main.setInvoiceNumLblText(",");
+            main.setInvoiceTotalLblText("0");
+            main.getHeadersArray().remove(selRow);
+            TableHeader hTable = new TableHeader();
+            hTable.setHeaders(main.getHeadersArray());
+            main.getInvoiceTable().setModel(hTable);
         }
-
     }
-
     private void deleteLine() {
-        // int selectedHeaderRow = MainFrame.invoiceTable.getSelectedRow();
-        int selectedHeaderRow = mainFrame.getInvoiceTable().getSelectedRow();
-        int selectedLineRow = mainFrame.getInvoiceItemsTable().getSelectedRow();
-        if (selectedLineRow == -1 || selectedHeaderRow == -1) {
+        int SelHedRow = main.getInvoiceTable().getSelectedRow();
+        int selLineRow = main.getInvoiceItemsTable().getSelectedRow();
+        if (selLineRow == -1 || SelHedRow == -1) {
             JOptionPane.showMessageDialog(null, "Please select Invoice line/InvoiceHeader to delete Line ", "delete erorr", JOptionPane.ERROR_MESSAGE);
         } else {
-            InvoiceHeader invoiceHeader = mainFrame.getHeadersArray().get(selectedHeaderRow);
-            InvoiceLine invoiceLine = mainFrame.getHeadersArray().get(selectedHeaderRow).getLines().get(selectedLineRow);
-            invoiceHeader.getLines().remove(selectedLineRow);
-            double lineTotal = invoiceLine.getLineTotal();
+            HeaderInvoice invoiceHeader = main.getHeadersArray().get(SelHedRow);
+            invoiceSampla invoiceLine = main.getHeadersArray().get(SelHedRow).getLines().get(selLineRow);
+            invoiceHeader.getLines().remove(selLineRow);
+            double lineTotal = invoiceLine.getLineTot();
             invoiceHeader.setInvoiceTotal(lineTotal * -1);
             String total = Double.toString(invoiceHeader.getInvoiceTotal());
-            LineTable lTable = new LineTable();
+            TableSamble lTable = new TableSamble();
             lTable.setItems(invoiceHeader.getLines());
-            //MainFrame.invoiceItems.setModel(lTable);
-            mainFrame.getInvoiceItemsTable().setModel(lTable);
-            mainFrame.setInvoiceTotalLblText(total);
-
-            HeaderTable hTable = new HeaderTable();
-            hTable.setHeaders(mainFrame.getHeadersArray());
-            // MainFrame.invoiceTable.setModel(hTable);
-            mainFrame.getInvoiceTable().setModel(hTable);
+            main.getInvoiceItemsTable().setModel(lTable);
+            main.setInvoiceTotalLblText(total);
+            TableHeader hTable = new TableHeader();
+            hTable.setHeaders(main.getHeadersArray());
+            main.getInvoiceTable().setModel(hTable);
         }
 
     }
 
     private void saveFile() {
-        ArrayList<InvoiceHeader> invoiceHeadersArray = mainFrame.getHeadersArray();
+        ArrayList<HeaderInvoice> invoiceHeadersArray = main.getHeadersArray();
         FileWriter headerFileWriter = null;
         FileWriter lineFileWriter = null;
         JOptionPane.showMessageDialog(null, "Select Invoice Header File", " Invoice Header ", JOptionPane.INFORMATION_MESSAGE);
@@ -320,10 +278,10 @@ public class Controller implements ActionListener {
             }
             String headers = "";
             String lines = "";
-            for (InvoiceHeader header : invoiceHeadersArray) {
+            for (HeaderInvoice header : invoiceHeadersArray) {
                 headers += header.toString();
                 headers += "\n";
-                for (InvoiceLine line : header.getLines()) {
+                for (invoiceSampla line : header.getLines()) {
                     lines += line.toString();
                     lines += "\n";
                 }
@@ -331,7 +289,6 @@ public class Controller implements ActionListener {
             headers = headers.substring(0, headers.length() - 1);
             lines = lines.substring(0, lines.length() - 1);
             JOptionPane.showMessageDialog(null, "Select Invocie Lines file", " Invoice Items ", JOptionPane.INFORMATION_MESSAGE);
-            int result = fileChooser.showSaveDialog(null);
             File lineFile = fileChooser.getSelectedFile();
             if (!(lineFile.getName().contains(".csv") || headerFile.getName().contains(".txt"))) {
                 try {
@@ -368,11 +325,9 @@ public class Controller implements ActionListener {
                 Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-
     }
-
     private void loadFile() throws IOException, Exception {
-        fileOperation = new FileOperation(mainFrame);
+        fileOp = new FileOP(main);
         JOptionPane.showMessageDialog(null, "Select Invoice Header File", " Invoice Header ", JOptionPane.INFORMATION_MESSAGE);
         JFileChooser fileChooser = new JFileChooser();
         if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
@@ -386,28 +341,25 @@ public class Controller implements ActionListener {
                 if (!lineFile.getName().contains(".csv")) {
                     throw new Exception("Wrong File Format");
                 }
-
-                headers = new ArrayList<>();
-                invoiceItems = new ArrayList<>();
-                ArrayList<String> headerLines = fileOperation.readFile(headerFile);
-                ArrayList<String> itemLines = fileOperation.readFile(lineFile);
-                //generate (invoice number,invoice date, cusomer name) from each HeaderLine
+                hLine = new ArrayList<>();
+                invLines = new ArrayList<>();
+                ArrayList<String> headerLines = fileOp.readFile(headerFile);
+                ArrayList<String> itemLines = fileOp.readFile(lineFile);
                 for (String line : headerLines) {
                     String[] items = line.split(",");
-                    Date date = new Date();
+                    Date date;
+                    date = new Date();
                     int invoiceNumber = Integer.parseInt(items[0]);
                     try {
                         date = MainFrame.formatter.parse(items[1]);
                     } catch (ParseException parserx) {
                         JOptionPane.showMessageDialog(null, "Wrong Data Format in File :" + headerFile, "Date Error", JOptionPane.ERROR_MESSAGE);
                         return;
-
                     }
                     String customerName = items[2];
-                    InvoiceHeader invoiceHeader = new InvoiceHeader(invoiceNumber, (date), customerName);
-                    headers.add(invoiceHeader);
+                    HeaderInvoice invoiceHeader = new HeaderInvoice(invoiceNumber, (date), customerName);
+                    hLine.add(invoiceHeader);
                 }
-                //generate (invoice number ,custmoer Name,price,count) from each InvoiceLine
                 for (String line : itemLines) {
                     String[] items = line.split(",");
                     int invoiceNumber = Integer.parseInt(items[0]);
@@ -419,58 +371,42 @@ public class Controller implements ActionListener {
                         JOptionPane.showMessageDialog(null, "Wrong Data Format in File :" + lineFile, "Date Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
-
-                    InvoiceLine invoiceLine = null;
-                    for (InvoiceHeader header : headers) {
+                    invoiceSampla invoiceLine = null;
+                    for (HeaderInvoice header : hLine) {
                         if (invoiceNumber == header.getInvoiceNumber()) {
-                            //invoiceLine = new InvoiceLine(invoiceNumber, itemName, price, count, header);
-                            invoiceLine = new InvoiceLine(invoiceNumber, itemName, price, count, header);
-                            header.setInvoiceTotal(invoiceLine.getLineTotal());
+                            invoiceLine = new invoiceSampla(invoiceNumber, itemName, price, count, header);
+                            header.setInvoiceTotal(invoiceLine.getLineTot());
                             break;
                         }
                     }
-
-                    invoiceItems.add(invoiceLine);
-
+                    invLines.add(invoiceLine);
                 }
-
-                //////////
-                for (InvoiceHeader header : headers) {
-                    ArrayList<InvoiceLine> tmp = new ArrayList<>();
-                    for (InvoiceLine invoiceline : invoiceItems) {
-                        if (header.getInvoiceNumber() == invoiceline.getInvoiceNumber()) {
+                for (HeaderInvoice header : hLine) {
+                    ArrayList<invoiceSampla> tmp = new ArrayList<>();
+                    for (invoiceSampla invoiceline : invLines) {
+                        if (header.getInvoiceNumber() == invoiceline.getInvNumber()) {
                             tmp.add(invoiceline);
                         }
                     }
                     header.setLines(tmp);
                 }
-
-                ////////
-                HeaderTable hTable = new HeaderTable();
-                mainFrame.setHeadersArray(headers);
-                mainFrame.setLinesArray(invoiceItems);
-                hTable.setHeaders(mainFrame.getHeadersArray());
-                //  MainFrame.invoiceTable.setModel(hTable);
-                mainFrame.getInvoiceTable().setModel(hTable);
-                /////
-
-                ///
+                TableHeader hTable = new TableHeader();
+                main.setHeadersArray(hLine);
+                main.setLinesArray(invLines);
+                hTable.setHeaders(main.getHeadersArray());
+                main.getInvoiceTable().setModel(hTable);
             } else {
                 JOptionPane.showMessageDialog(null, "Invoice Lines didn't selected", "Inovice Line Error", JOptionPane.ERROR_MESSAGE);
-
             }
-
         } else {
             JOptionPane.showMessageDialog(null, "Invoice Headers didn't selected", "Invoice Header Error", JOptionPane.ERROR_MESSAGE);
-
         }
 
     }
-
     private void addInvoice() {
-        String invoiceNumber = hFrame.getInvoiceNumber();
-        String customerName = hFrame.getCustomerNameTF();
-        String date = hFrame.getInvoiceDateTF();
+        String invoiceNumber = invoiceF.getInvoiceNumber();
+        String customerName = invoiceF.getCustomerNameTF();
+        String date = invoiceF.getInvoiceDateTF();
         Date dateParse = null;
         if (Integer.parseInt(invoiceNumber) < 0) {
             JOptionPane.showMessageDialog(null, "Wrong Data Invoice Number MUST BE GREATER THAN 0", "Date Error", JOptionPane.ERROR_MESSAGE);
@@ -486,54 +422,49 @@ public class Controller implements ActionListener {
             JOptionPane.showMessageDialog(null, "Enter Customer Name", "Customer Name Error", JOptionPane.ERROR_MESSAGE);
 
         } else {
-            InvoiceHeader invoiceHeader = new InvoiceHeader(Integer.parseInt(invoiceNumber), dateParse, customerName);
-            mainFrame.getHeadersArray().add(invoiceHeader);
-            ArrayList<InvoiceLine> l = new ArrayList<>();
+            HeaderInvoice invoiceHeader = new HeaderInvoice(Integer.parseInt(invoiceNumber), dateParse, customerName);
+            main.getHeadersArray().add(invoiceHeader);
+            ArrayList<invoiceSampla> l = new ArrayList<>();
             invoiceHeader.setLines(l);
-            HeaderTable hTable = new HeaderTable();
-            hTable.setHeaders(mainFrame.getHeadersArray());
-            //  MainFrame.invoiceTable.setModel(hTable);
-            mainFrame.getInvoiceTable().setModel(hTable);
-            hFrame.dispose();
+            TableHeader hTable = new TableHeader();
+            hTable.setHeaders(main.getHeadersArray());
+            main.getInvoiceTable().setModel(hTable);
+            invoiceF.dispose();
         }
     }
 
     private void cancelInvoice() {
-        hFrame.dispose();
+        invoiceF.dispose();
     }
 
     private void cancelLine() {
-        lFrame.dispose();
+        lineF.dispose();
     }
 
     private void addLine() {
         //   int selectedRow = MainFrame.invoiceTable.getSelectedRow();
-        int selectedRow = mainFrame.getInvoiceTable().getSelectedRow();
-        String itemName = lFrame.getNameTF();
-        String itemPrice = lFrame.getPriceTF();
-        String itemCount = lFrame.getCountTF();
+        int selectedRow = main.getInvoiceTable().getSelectedRow();
+        String itemName = LineFrame.getNameTF();
+        String itemPrice = LineFrame.getPriceTF();
+        String itemCount = LineFrame.getCountTF();
         double price = Double.parseDouble(itemPrice);
         int count = Integer.parseInt(itemCount);
         if ("".equals(itemName) || "".equals(itemPrice) || "".equals(itemCount)) {
             JOptionPane.showMessageDialog(null, "Missing Data", "Customer Name Error", JOptionPane.ERROR_MESSAGE);
         } else if (price < 0 || count < 0) {
             JOptionPane.showMessageDialog(null, "Wrong Data price and count MUST BE GREATER THAN 0", " Wrong Data ", JOptionPane.ERROR_MESSAGE);
-            return;
         } else {
-            InvoiceLine invoiceline = new InvoiceLine(mainFrame.getHeadersArray().get(selectedRow).getInvoiceNumber(), itemName, price, count, mainFrame.getHeadersArray().get(selectedRow));
-            mainFrame.getLinesArray().add(invoiceline);
-            mainFrame.getHeadersArray().get(selectedRow).getLines().add(invoiceline);
-            mainFrame.getHeadersArray().get(selectedRow).setInvoiceTotal(invoiceline.getLineTotal());
-            HeaderTable hTable = new HeaderTable();
-            LineTable lTable = new LineTable();
-            lTable.setItems(mainFrame.getHeadersArray().get(selectedRow).getLines());
-            // MainFrame.invoiceItems.setModel(lTable);
-            mainFrame.getInvoiceItemsTable().setModel(lTable);
-            hTable.setHeaders(mainFrame.getHeadersArray());
-            //  MainFrame.invoiceTable.setModel(hTable);
-            mainFrame.getInvoiceTable().setModel(hTable);
-
-            lFrame.dispose();
+            invoiceSampla invoiceline = new invoiceSampla(main.getHeadersArray().get(selectedRow).getInvoiceNumber(), itemName, price, count, main.getHeadersArray().get(selectedRow));
+            main.getLinesArray().add(invoiceline);
+            main.getHeadersArray().get(selectedRow).getLines().add(invoiceline);
+            main.getHeadersArray().get(selectedRow).setInvoiceTotal(invoiceline.getLineTot());
+            TableHeader hTable = new TableHeader();
+            TableSamble lTable = new TableSamble();
+            lTable.setItems(main.getHeadersArray().get(selectedRow).getLines());
+            main.getInvoiceItemsTable().setModel(lTable);
+            hTable.setHeaders(main.getHeadersArray());
+            main.getInvoiceTable().setModel(hTable);
+            lineF.dispose();
         }
 
     }

@@ -3,8 +3,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Mostafa/Desktop/Sales-InvoiceGenerator-main/Sales-InvoiceGenerator-main/SalesInvoiceGenerator/src/SIGView/MainFrame.java</file>
-            <file>file:/C:/Users/Mostafa/Desktop/Sales-InvoiceGenerator-main/Sales-InvoiceGenerator-main/SalesInvoiceGenerator/src/SIGController/Controller.java</file>
+            <file>file:/C:/Users/Mostafa/Desktop/SalesInvoiceGenerator/src/SIGView/HeaderFrame.java</file>
+            <file>file:/C:/Users/Mostafa/Desktop/SalesInvoiceGenerator/src/Model/FileOP.java</file>
+            <file>file:/C:/Users/Mostafa/Desktop/SalesInvoiceGenerator/src/SIGView/LineFrame.java</file>
+            <file>file:/C:/Users/Mostafa/Desktop/SalesInvoiceGenerator/src/SIGController/TableSelectionController.java</file>
+            <file>file:/C:/Users/Mostafa/Desktop/SalesInvoiceGenerator/src/SIGView/MainFrame.java</file>
+            <file>file:/C:/Users/Mostafa/Desktop/SalesInvoiceGenerator/src/SIGController/Controller.java</file>
         </group>
     </open-files>
 </project-private>

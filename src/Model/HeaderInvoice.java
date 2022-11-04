@@ -1,37 +1,36 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package SIGModel;
+package Model;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
+import java.text.*;
+import java.util.*;
 
 /**
  *
- * @author DELL
+ * @author Mostafa
  */
-public class InvoiceHeader {
+public class HeaderInvoice {
 
     private int invoiceNumber;
     private String invoiceDate;
     private String customerName;
     private double invoiceTotal;
-    ArrayList<InvoiceLine> lines;
-    private  SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-    public ArrayList<InvoiceLine> getLines() {
+    private final SimpleDateFormat form = new SimpleDateFormat("dd-MM-yyyy");
+    
+    
+    ArrayList<invoiceSampla> lines;
+    public ArrayList<invoiceSampla> getLines() {
         return lines;
     }
-
-    public void setLines(ArrayList<InvoiceLine> lines) {
+    public void setLines(ArrayList<invoiceSampla> lines) {
         this.lines = lines;
     }
 
-    public InvoiceHeader(int invoiceNumber, Date invoiceDate, String customerName) {
+    public HeaderInvoice(int invoiceNumber, Date invoiceDate, String customerName) {
         this.invoiceNumber = invoiceNumber;
-        this.invoiceDate = formatter.format(invoiceDate);
+        this.invoiceDate = form.format(invoiceDate);
         this.customerName = customerName;
     }
 
@@ -51,7 +50,7 @@ public class InvoiceHeader {
         this.invoiceNumber = invoiceNumber;
     }
 
-    public String getInvoiceDate() {
+    public  String getInvoiceDate() {
         return invoiceDate;
     }
 
@@ -71,8 +70,5 @@ public class InvoiceHeader {
         return invoiceNumber+ "," + (invoiceDate) + "," +customerName  ;
     }
 
-    public InvoiceHeader() {
-        
-    }
-
+   
 }

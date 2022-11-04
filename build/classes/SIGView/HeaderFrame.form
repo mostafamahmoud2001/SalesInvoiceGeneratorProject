@@ -142,7 +142,7 @@
         <Property name="text" type="java.lang.String" value="Add Invoice"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="add.addActionListener(mainFrame.getController());&#xd;&#xa;"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="add.addActionListener(mainF.getController());&#xd;&#xa;"/>
       </AuxValues>
     </Component>
     <Component class="javax.swing.JButton" name="cancel">
@@ -150,7 +150,7 @@
         <Property name="text" type="java.lang.String" value="Cancel Inovice"/>
       </Properties>
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="cancel.addActionListener(mainFrame.getController());&#xd;&#xa;"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="cancel.addActionListener(mainF.getController());&#xd;&#xa;"/>
       </AuxValues>
     </Component>
   </SubComponents>
